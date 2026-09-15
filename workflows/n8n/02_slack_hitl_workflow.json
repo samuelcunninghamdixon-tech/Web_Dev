@@ -1,0 +1,42 @@
+{
+  "name": "Slack HITL Workflow",
+  "nodes": [
+    {
+      "id": "slackTrigger",
+      "name": "Slack Interaction",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [260, 280],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "slack-hitl",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "forwardToAgent",
+      "name": "Forward to Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [520, 280],
+      "parameters": {
+        "url": "http://agent-service:8000/api/slack-event",
+        "method": "POST",
+        "responseFormat": "json"
+      }
+    }
+  ],
+  "connections": {
+    "slackTrigger": {
+      "main": [
+        [
+          {
+            "node": "forwardToAgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

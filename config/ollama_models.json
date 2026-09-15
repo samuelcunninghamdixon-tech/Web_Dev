@@ -1,0 +1,7 @@
+{
+  "vision": "qwen2-vl:7b",
+  "coder": "qwen2.5-coder:32b",
+  "text": "qwen2.5:32b",
+  "default_keep_alive": "300s",
+  "switch_keep_alive": "0"
+}

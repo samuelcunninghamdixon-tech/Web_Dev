@@ -1,0 +1,64 @@
+{
+  "name": "Deployment Outreach Workflow",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Deployment Complete",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [220, 280],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "deployment-complete",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "generatePitch",
+      "name": "Generate Pitch Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [470, 280],
+      "parameters": {
+        "url": "http://agent-service:8000/api/codegen",
+        "method": "POST",
+        "responseFormat": "json"
+      }
+    },
+    {
+      "id": "persistProspect",
+      "name": "Save Prospect Record",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [720, 280],
+      "parameters": {
+        "operation": "insert",
+        "table": "prospects"
+      }
+    }
+  ],
+  "connections": {
+    "trigger": {
+      "main": [
+        [
+          {
+            "node": "generatePitch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generatePitch": {
+      "main": [
+        [
+          {
+            "node": "persistProspect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

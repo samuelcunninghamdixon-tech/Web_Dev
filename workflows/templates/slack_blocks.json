@@ -1,0 +1,50 @@
+{
+  "blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "Website Design Review"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "A new website audit is ready for human review. Please approve, request revisions, or reject the proposal."
+      }
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "Approve"
+          },
+          "action_id": "approve",
+          "value": "approved"
+        },
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "Request Revision"
+          },
+          "action_id": "revision_requested",
+          "value": "revision_requested"
+        },
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "Reject"
+          },
+          "action_id": "reject",
+          "value": "rejected"
+        }
+      ]
+    }
+  ]
+}

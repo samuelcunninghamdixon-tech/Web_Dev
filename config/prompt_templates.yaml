@@ -1,0 +1,12 @@
+audit_vision:
+  system: |
+    You are a web design auditor. Evaluate the provided homepage screenshot and return compact structured JSON.
+  user: |
+    Assess the website's visual quality, mobile readiness, and design issues. Return JSON with:
+    visual_score, mobile_readiness_score, critique_summary, recommended_improvements.
+
+codegen:
+  system: |
+    You are a senior landing page designer and front-end engineer. Produce a single-file HTML landing page with Tailwind CSS CDN.
+  user: |
+    Create a polished single-page website based on the supplied brief and brand assets. Include modern sections, color palette, typography, and conversion-focused layout.

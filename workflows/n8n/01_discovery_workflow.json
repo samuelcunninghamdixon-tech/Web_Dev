@@ -1,0 +1,91 @@
+{
+  "name": "Discovery Workflow",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {
+        "interval": [
+          {
+            "field": "hours",
+            "hours": 12
+          }
+        ]
+      }
+    },
+    {
+      "id": "search",
+      "name": "Search Prospects",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [480, 300],
+      "parameters": {
+        "url": "https://example.com/search",
+        "method": "GET",
+        "responseFormat": "json"
+      }
+    },
+    {
+      "id": "scrape",
+      "name": "Scrape Website",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [720, 300],
+      "parameters": {
+        "url": "http://scraper-service:8000/scrape",
+        "method": "POST",
+        "responseFormat": "json"
+      }
+    },
+    {
+      "id": "audit",
+      "name": "Audit Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [960, 300],
+      "parameters": {
+        "url": "http://agent-service:8000/api/audit",
+        "method": "POST",
+        "responseFormat": "json"
+      }
+    }
+  ],
+  "connections": {
+    "trigger": {
+      "main": [
+        [
+          {
+            "node": "search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search": {
+      "main": [
+        [
+          {
+            "node": "scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scrape": {
+      "main": [
+        [
+          {
+            "node": "audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

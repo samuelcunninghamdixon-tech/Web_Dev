@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv/
+venv/
+node_modules/
+shared/screenshots/*
+shared/assets/*
+shared/exports/*
+*.log
+.DS_Store
