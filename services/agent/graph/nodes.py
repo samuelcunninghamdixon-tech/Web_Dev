@@ -35,5 +35,3 @@ async def codegen_node(state: dict[str, Any], codegen_provider: Callable[[Agency
 
 async def failed_node(state: dict[str, Any]) -> dict[str, Any]:
     return {"status": "FAILED"}
-
-
