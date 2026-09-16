@@ -17,15 +17,19 @@
       }
     },
     {
-      "id": "search",
-      "name": "Search Prospects",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
+      "id": "prospect",
+      "name": "Prepare Prospect",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [480, 300],
       "parameters": {
-        "url": "https://example.com/search",
-        "method": "GET",
-        "responseFormat": "json"
+        "values": {
+          "string": [
+            {"name": "prospect_id", "value": "={{ $json.prospect_id || 'local-prospect' }}"},
+            {"name": "url", "value": "={{ $json.url || 'https://example.org' }}"},
+            {"name": "correlation_id", "value": "={{ $json.correlation_id || $execution.id }}"}
+          ]
+        }
       }
     },
     {
@@ -37,7 +41,21 @@
       "parameters": {
         "url": "http://scraper-service:8000/scrape",
         "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [
+          {"name": "X-Correlation-ID", "value": "={{ $json.correlation_id }}"},
+          {"name": "X-Idempotency-Key", "value": "={{ $json.correlation_id + ':scrape:' + $json.prospect_id }}"}
+        ]},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({url: $json.url, prospect_id: $json.prospect_id, screenshot: {enabled: true, full_page: true}}) }}",
+        "options": {"timeout": 30000},
         "responseFormat": "json"
+      },
+      "credentials": {
+        "httpHeaderAuth": {"id": "INTERNAL_API_CREDENTIAL_ID", "name": "agency-internal-api"}
       }
     },
     {
@@ -49,7 +67,21 @@
       "parameters": {
         "url": "http://agent-service:8000/api/audit",
         "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [
+          {"name": "X-Correlation-ID", "value": "={{ $json.correlation_id || $execution.id }}"},
+          {"name": "X-Idempotency-Key", "value": "={{ ($json.correlation_id || $execution.id) + ':audit:' + $json.prospect_id }}"}
+        ]},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({prospect_id: $json.prospect_id, url: $json.url, screenshot_path: $json.screenshot_path || null, assets: $json.assets || []}) }}",
+        "options": {"timeout": 30000},
         "responseFormat": "json"
+      },
+      "credentials": {
+        "httpHeaderAuth": {"id": "INTERNAL_API_CREDENTIAL_ID", "name": "agency-internal-api"}
       }
     }
   ],
@@ -58,14 +90,14 @@
       "main": [
         [
           {
-            "node": "search",
+            "node": "prospect",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "search": {
+    "prospect": {
       "main": [
         [
           {

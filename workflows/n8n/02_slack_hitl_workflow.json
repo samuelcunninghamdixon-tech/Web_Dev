@@ -22,7 +22,23 @@
       "parameters": {
         "url": "http://agent-service:8000/api/slack-event",
         "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [
+          {"name": "X-Correlation-ID", "value": "={{ $json.body.correlation_id || $execution.id }}"},
+          {"name": "X-Idempotency-Key", "value": "={{ $json.body.event_id }}"},
+          {"name": "X-Slack-Request-Timestamp", "value": "={{ $json.headers['x-slack-request-timestamp'] }}"},
+          {"name": "X-Slack-Signature", "value": "={{ $json.headers['x-slack-signature'] }}"}
+        ]},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({thread_id: $json.body.thread_id, action_id: $json.body.action_id, user_id: $json.body.user_id, channel_id: $json.body.channel_id, message_ts: $json.body.message_ts, feedback: $json.body.feedback || '', event_id: $json.body.event_id}) }}",
+        "options": {"timeout": 10000},
         "responseFormat": "json"
+      },
+      "credentials": {
+        "httpHeaderAuth": {"id": "INTERNAL_API_CREDENTIAL_ID", "name": "agency-internal-api"}
       }
     }
   ],

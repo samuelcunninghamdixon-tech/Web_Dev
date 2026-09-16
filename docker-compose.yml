@@ -13,6 +13,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - agency-network
 
@@ -38,9 +43,21 @@ services:
       DB_POSTGRESDB_DATABASE: ${POSTGRES_DB:-agency}
       DB_POSTGRESDB_USER: ${POSTGRES_USER:-agency}
       DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD:-agency}
-      N8N_BASIC_AUTH_ACTIVE: false
+      N8N_BASIC_AUTH_ACTIVE: ${N8N_BASIC_AUTH_ACTIVE:-true}
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER:?Set N8N_BASIC_AUTH_USER in .env}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD:?Set N8N_BASIC_AUTH_PASSWORD in .env}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?Set N8N_ENCRYPTION_KEY in .env}
+      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL:-http://localhost:5678}
+      WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:5678/}
+      N8N_PROTOCOL: ${N8N_PROTOCOL:-http}
+      N8N_SECURE_COOKIE: ${N8N_SECURE_COOKIE:-false}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - shared_exports:/shared/exports
+      - shared_generated_sites:/shared/generated-sites
     networks:
       - agency-network
 
@@ -49,15 +66,24 @@ services:
       context: ./services/agent
     container_name: local-ai-agent
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://agency:agency@postgres:5432/agency}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
     depends_on:
-      - postgres
-      - ollama
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
     ports:
       - "8001:8000"
+    volumes:
+      - shared_screenshots:/shared/screenshots
+      - shared_assets:/shared/assets
+      - shared_exports:/shared/exports
+      - shared_generated_sites:/shared/generated-sites
     networks:
       - agency-network
 
@@ -66,17 +92,28 @@ services:
       context: ./services/scraper
     container_name: local-ai-scraper
     env_file:
-      - .env
+      - path: .env
+        required: false
     depends_on:
       - ollama
     ports:
       - "8002:8000"
+    volumes:
+      - shared_screenshots:/shared/screenshots
+      - shared_assets:/shared/assets
+      - shared_exports:/shared/exports
+      - shared_generated_sites:/shared/generated-sites
     networks:
       - agency-network
 
 volumes:
   postgres_data:
   ollama_data:
+  n8n_data:
+  shared_screenshots:
+  shared_assets:
+  shared_exports:
+  shared_generated_sites:
 
 networks:
   agency-network:

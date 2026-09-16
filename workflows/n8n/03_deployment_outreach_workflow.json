@@ -14,15 +14,26 @@
       }
     },
     {
-      "id": "generatePitch",
-      "name": "Generate Pitch Email",
+      "id": "agentState",
+      "name": "Verify Agent State",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [470, 280],
       "parameters": {
-        "url": "http://agent-service:8000/api/codegen",
-        "method": "POST",
+        "url": "http://agent-service:8000/api/state/{{$json.body.thread_id}}",
+        "method": "GET",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [
+          {"name": "X-Correlation-ID", "value": "={{ $json.body.correlation_id || $execution.id }}"},
+          {"name": "X-Idempotency-Key", "value": "={{ ($json.body.correlation_id || $execution.id) + ':outreach' }}"}
+        ]},
+        "options": {"timeout": 10000},
         "responseFormat": "json"
+      },
+      "credentials": {
+        "httpHeaderAuth": {"id": "INTERNAL_API_CREDENTIAL_ID", "name": "agency-internal-api"}
       }
     },
     {
@@ -33,7 +44,12 @@
       "position": [720, 280],
       "parameters": {
         "operation": "insert",
-        "table": "prospects"
+        "table": "outreach_drafts",
+        "columns": "prospect_id, correlation_id, recipient_email, subject, body, status",
+        "values": "={{ $json.state.prospect.prospect_id }},={{ $json.body.correlation_id || $execution.id }},={{ $json.body.recipient_email }},={{ $json.body.subject || 'Website improvement proposal' }},={{ $json.body.body || '' }},DRAFT"
+      },
+      "credentials": {
+        "postgres": {"id": "N8N_POSTGRES_CREDENTIAL_ID", "name": "agency-postgres"}
       }
     }
   ],
@@ -42,14 +58,14 @@
       "main": [
         [
           {
-            "node": "generatePitch",
+            "node": "agentState",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "generatePitch": {
+    "agentState": {
       "main": [
         [
           {
