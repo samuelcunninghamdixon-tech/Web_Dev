@@ -1,4 +1,4 @@
-# Agent Graph and Slack Human Review
+# Agent Graph and Discord-First Human Review
 
 ## Goal
 
@@ -26,7 +26,7 @@ Implement nodes with one responsibility:
 1. Load the prospect and assets.
 2. Call the vision model with a bounded prompt.
 3. Parse and validate the audit JSON.
-4. Store the audit and send a Slack review card.
+4. Store the audit and send a review message through the configured transport adapter. Discord is the MVP default.
 5. Pause until a verified Slack action arrives.
 6. Apply feedback to the design brief.
 7. Route approved work to code generation.
@@ -55,7 +55,27 @@ Implement:
 
 A parse failure should produce a visible failed state or review task, not silently invent a score.
 
-## Step 5: Slack Security
+## Step 5: Review Transport Abstraction
+
+Define a shared review adapter interface with operations such as:
+
+- `send_review_request(state) -> message reference`
+- `acknowledge_action(event) -> None`
+- `update_review_message(state) -> None`
+- `verify_interaction(request) -> normalized event`
+
+The internal normalized event must contain `thread_id`, `action`, `user_id`, `channel_id`, `message_id`, and optional feedback. The graph must never depend directly on Discord or Slack payload shapes.
+
+### Discord MVP
+
+1. Verify Discord Ed25519 signatures with `DISCORD_PUBLIC_KEY`.
+2. Reject stale or malformed interaction requests.
+3. Acknowledge button interactions within Discord's response deadline.
+4. Map `approve_audit`, `request_revision`, and `reject_audit` to the existing state transitions.
+5. Restrict accepted interactions to `DISCORD_REVIEW_GUILD_ID` and `DISCORD_REVIEW_CHANNEL_ID`.
+6. Record Discord user, channel, message, and interaction IDs for replay protection.
+
+### Slack Later Version
 
 1. Verify the Slack signature using the raw request body and timestamp.
 2. Reject stale requests.
@@ -63,6 +83,8 @@ A parse failure should produce a visible failed state or review task, not silent
 4. Record user ID, channel, message timestamp, action, and feedback.
 5. Acknowledge quickly, then process asynchronously when work may be slow.
 6. Restrict accepted actions to the configured review channel and known workflow thread.
+
+Select the adapter from `REVIEW_PLATFORM`. Supported values are `discord` for the MVP and `slack` for the later adapter.
 
 ## Step 6: API Endpoints
 
@@ -79,6 +101,7 @@ Use request and response models, authentication for internal endpoints, and cons
 ## Exit Checks
 
 - Start an audit and confirm a checkpoint exists in Postgres.
+- Set `REVIEW_PLATFORM=discord` and complete approval, revision, and rejection through Discord.
 - Restart the agent container while paused and query the same state.
 - Replay the same Slack approval event and confirm no duplicate transition.
 - Submit revision feedback and confirm it appears in the next design brief.

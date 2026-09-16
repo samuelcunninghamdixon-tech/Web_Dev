@@ -6,12 +6,29 @@ These items must be created or configured by the operator outside the coding age
 
 | Service | Why it is needed | What to create |
 | --- | --- | --- |
-| Slack | Human design review and approval events | A Slack workspace, an app, an incoming webhook, and an Interactivity Request URL |
+| Discord | MVP human design review and approval events | A Discord application, bot, private review channel, bot token, public key, and interaction endpoint |
+| Slack | Future human review adapter | A Slack workspace, app, webhook, and Interactivity Request URL |
 | GitHub | Preview hosting | A repository for generated `index.html` and a token with the smallest required repository/content permissions |
 | SMTP or Resend | Outreach drafts or later email delivery | An approved sending domain, sender identity, and API/SMTP credential |
 | Prospect source | Business discovery | A permitted Google Maps API, SearXNG instance, or another compliant source |
 
-## Slack Setup
+## Discord Setup (MVP)
+
+1. Create a Discord application in the Discord Developer Portal.
+2. Create a bot user and record `DISCORD_BOT_TOKEN`.
+3. Record the application ID as `DISCORD_APPLICATION_ID`.
+4. Record the application public key as `DISCORD_PUBLIC_KEY`.
+5. Create a private review channel and record `DISCORD_REVIEW_CHANNEL_ID`.
+6. Record the server ID as `DISCORD_REVIEW_GUILD_ID`.
+7. Add the bot to the server with only the permissions needed to send messages, embed links, and use buttons.
+8. Register the interaction endpoint at `DISCORD_INTERACTION_URL`.
+9. Configure the bot to post an embed with `approve_audit`, `request_revision`, and `reject_audit` button custom IDs.
+
+Discord interaction requests use Ed25519 signatures and must be acknowledged quickly. The endpoint should verify the signature, immediately acknowledge the interaction, and process the workflow asynchronously.
+
+For local-only development, expose the interaction endpoint through a temporary HTTPS tunnel. Do not expose the agent service directly to the public internet.
+
+## Slack Setup (Future Adapter)
 
 1. Create a Slack app in the target workspace.
 2. Enable Interactivity and set its request URL to the public n8n webhook for Slack events.
@@ -20,8 +37,6 @@ These items must be created or configured by the operator outside the coding age
 5. Record the app `SLACK_SIGNING_SECRET`.
 6. Decide whether the service will post to one review channel or create a thread per prospect.
 7. Restrict the Slack app to the minimum channels and scopes required.
-
-For local-only development, expose n8n through a temporary HTTPS tunnel. Do not expose the agent service directly to the public internet.
 
 ## GitHub Setup
 
@@ -51,4 +66,4 @@ Ollama, Postgres, Docker, and Playwright do not require third-party API keys for
 
 ## Secret Checklist
 
-Before starting the stack, verify that `.env` contains real values for database credentials, Ollama endpoints, Slack credentials, GitHub deployment values, and email settings. Verify that `.env` is ignored by git and that no secret appears in workflow JSON, logs, screenshots, or generated HTML.
+Before starting the stack, verify that `.env` contains real values for database credentials, Ollama endpoints, Discord credentials, GitHub deployment values, and email settings. Slack values are only required when `REVIEW_PLATFORM=slack`. Verify that `.env` is ignored by git and that no secret appears in workflow JSON, logs, screenshots, or generated HTML.
