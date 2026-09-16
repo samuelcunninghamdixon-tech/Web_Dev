@@ -12,6 +12,20 @@ This repository contains the initial skeleton for a locally hosted AI web agency
 - `config` - Model and prompt configuration
 - `tests` - Automated tests
 
+## Implementation Guide
+
+The step-by-step plan is in the [`docs`](docs) directory:
+
+1. [Overall roadmap](docs/00-overall-roadmap.md)
+2. [External accounts and keys](docs/01-external-accounts-and-keys.md)
+3. [Local environment](docs/02-local-environment.md)
+4. [Scraper service](docs/03-scraper-service.md)
+5. [Agent and Slack review](docs/04-agent-and-slack-review.md)
+6. [Code generation and deployment](docs/05-codegen-and-deployment.md)
+7. [n8n workflows and outreach](docs/06-n8n-workflows-and-outreach.md)
+8. [Testing, security, and operations](docs/07-testing-security-and-operations.md)
+9. [Current scaffold gaps](docs/08-current-scaffold-gaps.md)
+
 ## Quick Start
 
 1. Copy `.env.example` to `.env` and adjust values
