@@ -4,11 +4,13 @@ try:
     from .config import Settings
     from .routes.audit import router as audit_router
     from .routes.codegen import router as codegen_router
+    from .routes.discord import router as discord_router
     from .routes.slack_hitl import router as slack_router
 except ImportError:
     from config import Settings
     from routes.audit import router as audit_router
     from routes.codegen import router as codegen_router
+    from routes.discord import router as discord_router
     from routes.slack_hitl import router as slack_router
 
 settings = Settings()
@@ -16,6 +18,7 @@ app = FastAPI(title=settings.service_name)
 
 app.include_router(audit_router)
 app.include_router(codegen_router)
+app.include_router(discord_router)
 app.include_router(slack_router)
 
 

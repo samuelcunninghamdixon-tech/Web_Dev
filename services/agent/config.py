@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +13,13 @@ class Settings(BaseSettings):
     shared_assets_dir: Path = Path("/shared/assets")
     shared_exports_dir: Path = Path("/shared/exports")
     shared_generated_sites_dir: Path = Path("/shared/generated-sites")
+    review_platform: str = "discord"
+    discord_bot_token: str = ""
+    discord_application_id: str = ""
+    discord_public_key: str = ""
+    discord_review_channel_id: str = ""
+    discord_review_guild_id: str = ""
+    discord_interaction_url: str = ""
     slack_signing_secret: str = ""
     slack_review_channel: str = ""
 
@@ -20,6 +28,22 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @field_validator(
+        "discord_bot_token",
+        "discord_application_id",
+        "discord_public_key",
+        "discord_review_channel_id",
+        "discord_review_guild_id",
+        "discord_interaction_url",
+        "slack_signing_secret",
+        mode="before",
+    )
+    @classmethod
+    def ignore_placeholders(cls, value: str) -> str:
+        if isinstance(value, str) and value.lower() in {"replace-me", "change-me", ""}:
+            return ""
+        return value
 
     def public_metadata(self) -> dict[str, str]:
         return {
